@@ -2,14 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Smart-In App </title>
+  <title>Smart-In App</title>
 
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- VectorGrid plugin -->
-  <script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
 
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -27,56 +24,45 @@
       --shadow: 0 10px 30px rgba(0,0,0,0.6);
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
-
-    html,body{
-      height:100%;
-      margin:0;
-      background: linear-gradient(180deg,var(--bg-1),var(--bg-2));
-      color:#eaeef7;
-      overflow:hidden;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
-
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-1),var(--bg-2));color:#eaeef7;overflow:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
     .dashboard { height:100vh; width:100vw; display:flex; gap:20px; padding:20px; box-sizing:border-box; align-items:stretch; justify-content:center; }
-
     .left { width:240px; min-width:180px; display:flex; flex-direction:column; gap:18px; }
     .brand { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:16px; box-shadow: var(--shadow); border:1px solid var(--glass-border); }
     .brand h1{ margin:0; font-size:18px; color:#ffd84d; }
     .brand p{ margin:6px 0 0 0; color:var(--muted); font-size:13px; }
-
     .controls { display:flex; flex-direction:column; gap:10px; }
     .btn { padding:10px 12px; border-radius:10px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); border:1px solid rgba(255,255,255,0.03); color:#eef6ff; cursor:pointer; font-weight:600; box-shadow: 6px 6px 16px rgba(0,0,0,0.6), -4px -4px 10px rgba(255,255,255,0.02); transition: transform .12s ease, box-shadow .12s ease; text-align:center; }
     .btn:active{ transform:translateY(1px); }
     .btn.secondary{ background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.08)); border:1px solid rgba(255,255,255,0.02); }
-
     .center { flex:1; display:flex; flex-direction:column; gap:14px; min-width:400px; }
     .map-card { flex:1; border-radius:50%; position:relative; display:flex; align-items:center; justify-content:center; overflow:visible; }
-
     .map-wrapper { width:100%; max-width:650px; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; position:relative; z-index:1; }
-
     .map-circle { width:100%; height:100%; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-    #map { width:100%; height:100%; border-radius:50%; filter: brightness(1) saturate(5) hue-rotate(250deg); }
-
+    #map { width:100%; height:100%; border-radius:50%; filter: brightness(1) saturate(5) ; }
     .right { width:220px; min-width:220px; display:flex; flex-direction:column; gap:18px; }
-
     .dropdown { display:none; flex-direction:column; margin-top:6px; gap:4px; background: rgba(255,255,255,0.05); padding:6px 8px; border-radius:10px; border:2px solid rgba(255,255,255,0.03); cursor:pointer; }
     .dropdown div:hover { background: rgba(255,255,255,0.1); }
-
     .foliumtooltip { background: rgba(10,10,12,0.95); color:#fff; border-radius:8px; padding:8px 10px; border:2px solid rgba(255,255,255,0.04); }
 
-    .leaflet-control-container {
-  position: absolute !important;
-  top: 110px !important;
-  left: 70px !important;
-  z-index: 9999;
-  border: 2px;
-} /* sets zoom control inside the map circle */
+    /* Custom Zoom */
+    .custom-zoom-container {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .custom-zoom-container .btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      font-size: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-.leaflet-control-attribution {
-  opacity: 0 !important;
-  pointer-events: none !important; /* makes leaflet reference invisible */
-}
+    /* Legend styling */
+    .legend { padding:6px; background: rgba(0,0,0,0.4); border-radius:6px; font-size:12px; line-height:1.4; }
 
     @media (max-width:1000px){
       .dashboard{ flex-direction:column; padding:12px; gap:12px; }
@@ -90,138 +76,258 @@
 </head>
 
 <body>
-  <div class="dashboard">
-    <div class="left">
-      <div class="brand">
-        <h1>Vadilion Digital</h1>
-        <p>Smart-In — Brussels dashboard</p>
-      </div>
-      <div class="controls">
-        <button id="btn-theme" class="btn">Theme</button>
-        <div id="theme-dropdown" class="dropdown">
-          <div data-theme="sales">Sales</div>
-          <div data-theme="rents">Rents</div>
-          <div data-theme="social">Social & Economic</div>
-          <div data-theme="commerces">Commerces</div>
-          <div data-theme="bati">Bâti</div>
-          <div data-theme="security">Security</div>
-          <div data-theme="pollution">Pollution</div>
-          <div data-theme="green">Green/Blue</div>
-        </div>
-
-        <button id="btn-filters" class="btn">Filtres</button>
-        <div id="filters-dropdown" class="dropdown">
-          <div id="filters-content">choose a theme</div>
-        </div>
-      </div>
+<div class="dashboard">
+  <div class="left">
+    <div class="brand">
+      <h1>Vadilion Digital</h1>
+      <p>Smart-In — Brussels</p>
     </div>
-
-    <div class="center">
-      <div class="map-card">
-        <div class="map-background"></div>
-        <div class="map-wrapper">
-          <div class="map-circle">
-            <div id="map" class="folium-map"></div>
-          </div>
-        </div>
+    <div class="controls">
+      <button id="btn-theme" class="btn">Theme</button>
+      <div id="theme-dropdown" class="dropdown">
+        <div data-theme="Total sales 2013-2024">Total sales 2013-2024</div>
+        <div data-theme="Rents">Rents</div>
+        <div data-theme="SocioEconomics">SocioEconomics</div>
+        <div data-theme="Commerces">Commerces</div>
+        <div data-theme="Housing">Housing</div>
+        <div data-theme="Security">Security</div>
+        <div data-theme="Pollution">Pollution</div>
+        <div data-theme="GreenArea">Green Area</div>
       </div>
-    </div>
 
-    <div class="right">
-      <div class="legend">
-
-
-      </div>
-      <div class="controls">
-        <button id="btn-center" class="btn">Center map</button>
-        <button id="btn-toggle" class="btn secondary">Polygones OFF</button>
+      <button id="btn-filters" class="btn">Filtres</button>
+      <div id="filters-dropdown" class="dropdown">
+        <div id="filters-content">choose a theme</div>
       </div>
     </div>
   </div>
 
-  <script>
-    // --- initialize map ---
-    var map = L.map('map').setView([50.85, 4.35], 10);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+  <div class="center">
+    <div class="map-card">
+      <div class="map-wrapper">
+        <div class="map-circle">
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    map.whenReady(function () {
+  <div class="right">
+    <div class="legend"></div>
+    <div class="controls">
+      <button id="btn-center" class="btn">Center map</button>
+      <button id="btn-toggle" class="btn secondary">Polygones OFF</button>
+      <button id="btn-filters-off" class="btn secondary">Filters OFF</button>
+
+      <!-- Custom Zoom Buttons -->
+      <div class="custom-zoom-container">
+        <button id="zoom-in" class="btn">+</button>
+        <button id="zoom-out" class="btn">-</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- initialize map ---
+  var map = L.map('map', { zoomControl: false }).setView([50.85, 4.35], 10);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // --- Custom Zoom Buttons ---
+  document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
+  document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
+
+  // --- Global GeoJSON variables ---
+  var bruxellesLayer;
+  var currentThemeLayer;
+  var activeTheme = null;
+  var polygonsOn = true;
+
+  // --- Load base GeoJSON (sectors) ---
+  fetch('fromoriginalshapefile_to_selectionBXonly_convertedinto_4326.geojson')
+    .then(res => res.json())
+    .then(data => {
+      bruxellesLayer = L.geoJSON(data, {
+        style: { color: '#000', weight: 1, fillColor: '#F4F5F4', fillOpacity: 0.1 },
+        onEachFeature: function(feature, layer) {
+          layer.bindTooltip(Object.entries(feature.properties)
+            .slice(0,5)
+            .map(([k,v]) => k + ': ' + v).join('<br>'));
+        }
+      }).addTo(map);
+      map.fitBounds(bruxellesLayer.getBounds());
+    });
+
+  // --- Function to load theme GeoJSON ---
+  function loadThemeGeoJSON(filePath, valueProperty) {
+    if(currentThemeLayer){ map.removeLayer(currentThemeLayer); }
+
+    fetch(filePath)
+      .then(res => res.json())
+      .then(data => {
+        function getColor(d) {
+d = Number(d);
+
+    if (d === 0) return '#1a1a1a';
+    if (d > 0 && d <= 10) return '#fff4b8';
+    if (d > 10 && d <= 100) return '#1cf500';
+    if (d > 100 && d <= 300) return '#043d1f';
+    if (d > 300 && d <= 500) return '#3d71eb';
+    if (d > 500 && d <= 750) return '#020f4a';
+    if (d > 750 && d <= 1000) return '#4737a1';
+    if (d > 1000) return '#fa0505';
+
+}
+
+
+
+        function style(feature) {
+          return {
+            fillColor: getColor(feature.properties[valueProperty]),
+            weight: 1,
+            opacity: 1,
+
+            fillOpacity: 0.7
+          };
+        }
+
+        currentThemeLayer = L.geoJSON(data, {
+          style: style,
+          onEachFeature: function(feature, layer) {
+            layer.bindTooltip(Object.entries(feature.properties)
+              .map(([k,v]) => k + ': ' + v).join('<br>'));
+          }
+        }).addTo(map);
+
+        map.fitBounds(currentThemeLayer.getBounds());
+
+       // Simple legend with color lines
+const legendDiv = document.querySelector('.legend');
+legendDiv.innerHTML = `
+  <div><b>Total sales 2013-2024</b></div>
+  <div><span style="display:inline-block;width:20px;height:12px;background:#fa0505;margin-right:6px;"></span>> 1000</div>
+<div><span style="display:inline-block;width:20px;height:12px;background:#4737a1;margin-right:6px;"></span>751–1000</div>
+<div><span style="display:inline-block;width:20px;height:12px;background:#020f4a;margin-right:6px;"></span>501–750</div>
+<div><span style="display:inline-block;width:20px;height:12px;background:#3d71eb;margin-right:6px;"></span>301–500</div>
+<div><span style="display:inline-block;width:20px;height:12px;background:#043d1f;margin-right:6px;"></span>101–300</div>
+<div><span style="display:inline-block;width:20px;height:12px;background:#1cf500;margin-right:6px;"></span>11–100</div>
+<div><span style="display:inline-block;width:20px;height:12px;background:#fff4b8;margin-right:6px;"></span>1–10</div>
+
+
+`;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      })
+      .catch(err => console.error('Erreur chargement GeoJSON :', err));
+  }
+
+  // --- UI interactions ---
+  document.getElementById('btn-center').addEventListener('click', () => map.setView([50.85,4.35],10));
+
+  document.getElementById('btn-toggle').addEventListener('click', function(){
+    if(bruxellesLayer){
+      if(polygonsOn){
+        map.removeLayer(bruxellesLayer); polygonsOn=false;
+        this.classList.add('secondary'); this.innerText='Polygones OFF';
+      } else {
+        bruxellesLayer.addTo(map); polygonsOn=true;
+        this.classList.remove('secondary'); this.innerText='Polygones ON';
+      }
+    }
+  });
+
+  // --- Filters OFF ---
+  document.getElementById('btn-filters-off').addEventListener('click', function() {
+    if(currentThemeLayer){
+      map.removeLayer(currentThemeLayer);
+      currentThemeLayer = null;
+    }
+
+    activeTheme = null;
+
+    if(bruxellesLayer && !map.hasLayer(bruxellesLayer)){
+      bruxellesLayer.addTo(map);
+    }
+
+    document.getElementById('filters-content').innerHTML = 'choose a theme';
+
+    polygonsOn = true;
+    document.getElementById('btn-toggle').classList.remove('secondary');
+    document.getElementById('btn-toggle').innerText = 'Polygones ON';
+
+    document.querySelector('.legend').innerHTML = '';
+
+    map.setView([50.85,4.35], 10);
+  });
+
+  // Theme dropdown toggle
+  document.getElementById('btn-theme').addEventListener('click', function(){
+    var dd = document.getElementById('theme-dropdown');
+    dd.style.display = dd.style.display==='flex'?'none':'flex';
+  });
+
+  // Filters dropdown toggle
+  document.getElementById('btn-filters').addEventListener('click', function(){
+    var dd = document.getElementById('filters-dropdown');
+    dd.style.display = dd.style.display==='flex'?'none':'flex';
+  });
+
+  // Theme -> filters mapping
+  const themeFilters = {
+    Sales: ['house', 'appart'],
+    Rents: ['house', 'appart'],
+    SocioEconomics: ['quantity','work status','occupation','revenue','age group'],
+    Commerces: ['boutiques','fabrics'],
+    Housing: ['houses','appartments','hlm'],
+    Security: ['crimes','violence','incivilité'],
+    Pollution: ['air','noise'],
+    GreenArea: ['travel time','distance']
+  };
+
+  // Theme selection
+  document.querySelectorAll('#theme-dropdown div').forEach(el => {
+    el.addEventListener('click', function(){
+      var theme = this.dataset.theme;
+      activeTheme = theme;
+
+      var filtersDiv = document.getElementById('filters-content');
+      var filters = themeFilters[theme] || [];
+      filtersDiv.innerHTML = filters.length>0 ? filters.join(', ') : 'choose a theme';
+      document.getElementById('theme-dropdown').style.display = 'none';
+
+
+      if(theme === 'Total sales 2013-2024'){
+        loadThemeGeoJSON('merge_total_sales_2013_2024_BX_only_with_geofile.geojson', 'total_sales_2013_2024');
+      }
+    });
+  });
+
+  // Leaflet controls inside circle
+  map.whenReady(function () {
     const controls = document.querySelector('.leaflet-control-container');
     const wrapper = document.querySelector('.map-wrapper');
+    if (controls && wrapper) wrapper.appendChild(controls);
+  });
 
-    if (controls && wrapper) {
-        wrapper.appendChild(controls);
-    }
-});
+  // Resize map
+  window.addEventListener('resize', () => setTimeout(() => map.invalidateSize(),200));
 
+  window._map = map;
 
-    // Leaflet controls inside circle
-    var leafletControls = document.querySelector('.leaflet-control-container');
-    document.querySelector('.map-wrapper').appendChild(leafletControls);
-
-    // vector tiles
-    var vectorTileLayer = L.vectorGrid.protobuf(
-        "../vector_tiles/{z}/{x}/{y}.pbf",
-        { debug:true, interactive:true }
-    ).addTo(map);
-
-    vectorTileLayer.on('click', function(e){
-        if(e.layer && e.layer.properties){
-            var props = e.layer.properties;
-            var tooltipText = Object.keys(props).slice(0,5).map(k => k + ": " + props[k]).join("\n");
-            alert(tooltipText);
-        }
-    });
-
-    // UI interactions
-    document.getElementById('btn-center').addEventListener('click', function(){ map.setView([50.85,4.35],10); });
-
-    var polygonsOn = true;
-    document.getElementById('btn-toggle').addEventListener('click', function(){
-      if(polygonsOn){ map.removeLayer(vectorTileLayer); polygonsOn=false; this.classList.add('secondary'); this.innerText='Polygones OFF'; }
-      else { vectorTileLayer.addTo(map); polygonsOn=true; this.classList.remove('secondary'); this.innerText='Toggle polygons'; }
-    });
-
-    // Theme dropdown
-    document.getElementById('btn-theme').addEventListener('click', function(){
-      var dd = document.getElementById('theme-dropdown');
-      dd.style.display = dd.style.display==='flex'?'none':'flex';
-    });
-
-    // Filters dropdown
-    document.getElementById('btn-filters').addEventListener('click', function(){
-      var dd = document.getElementById('filters-dropdown');
-      dd.style.display = dd.style.display==='flex'?'none':'flex';
-    });
-
-    // table mapping theme -> filters
-    const themeFilters = {
-      sales: ['house', 'appart'],
-      rents: ['house', 'appart'],
-      social: ['quantity','work status','occupation','revenue','age group'],
-      commerces: ['boutiques','fabrics'],
-      bati: ['houses','appartments','hlm'],
-      security: ['crimes','violence','incivilité'],
-      pollution: ['air','noise'],
-      green: ['travel time','distance']
-    };
-
-    // click sur un thème -> mise à jour des filtres
-    document.querySelectorAll('#theme-dropdown div').forEach(el => {
-      el.addEventListener('click', function(){
-        var theme = this.dataset.theme;
-        var filtersDiv = document.getElementById('filters-content');
-        var filters = themeFilters[theme] || [];
-        filtersDiv.innerHTML = filters.length>0 ? filters.join(', ') : 'choose a theme';
-        document.getElementById('theme-dropdown').style.display = 'none';
-      });
-    });
-
-    // resize
-    window.addEventListener('resize', function(){ setTimeout(function(){ map.invalidateSize(); },200); });
-    window._map = map;
-    window._vTile = vectorTileLayer;
-  </script>
+</script>
 </body>
 </html>
